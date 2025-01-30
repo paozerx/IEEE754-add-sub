@@ -1,0 +1,17 @@
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.STD_LOGIC_ARITH.ALL;
+use IEEE.STD_LOGIC_UNSIGNED.ALL;
+
+entity main is
+    Port ( input : in STD_LOGIC_VECTOR(9 downto 0) ;
+			  input_to : out STD_LOGIC_VECTOR(19 downto 0);
+			  sign_input : out std_logic := '0';
+			  start,reset,clock : in std_logic;
+			  enable : out std_logic; --mux 2
+			  enable_binary : out std_logic;
+			  enable_cal : out std_logic;
+			  selector : out STD_LOGIC_VECTOR(1 downto 0);
+			  a : out STD_LOGIC_VECTOR(9 downto 0);
+           b : out STD_LOGIC_VECTOR(9 downto 0));
+end main;
