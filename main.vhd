@@ -9,6 +9,8 @@ entity main is
 			  op : in std_logic;
 			  start,reset,clock : in std_logic;
 			  result : out STD_LOGIC_VECTOR(31 downto 0);
+			  sum_frac : out std_logic_vector(24 downto 0 );
+			  s_expo : out std_logic_vector(8 downto 0);
 			  done : out std_logic);
 end main;
 
@@ -26,7 +28,6 @@ signal sum_sign : std_logic;
 signal faction_a : std_logic_vector(24 downto 0);
 signal faction_b : std_logic_vector(24 downto 0);
 signal sum_faction : std_logic_vector(24 downto 0);
-signal sum_faction_norm : std_logic_vector(22 downto 0);
 
 begin
 	process(clock)
@@ -88,22 +89,40 @@ begin
 					end if;
 						
 				when S2 =>
-					if (sign_a xor sign_b) = '0' then
-						sum_faction <= std_logic_vector(unsigned(faction_a) + unsigned(faction_b));
-						sum_sign <= sign_a;
-						state <= S3;
-					else
-						if unsigned(faction_a) > unsigned(faction_b) then
+					if (op = '1') then 
+						if (sign_a xor sign_b) = '0' then
+							sum_faction <= std_logic_vector(unsigned(faction_a) + unsigned(faction_b));
+							sum_sign <= sign_a;
+							state <= S3;
+						else
+							if unsigned(faction_a) > unsigned(faction_b) then
+								sum_faction <= std_logic_vector(unsigned(faction_a) - unsigned(faction_b));
+								sum_sign <= sign_a;
+								state <= S3;
+							else
+								sum_faction <= std_logic_vector(unsigned(faction_b) - unsigned(faction_a));
+								sum_sign <= sign_b;
+								state <= S3;
+							end if;
+						end if;
+					elsif (op = '0') then    
+						if (sign_a xor sign_b) = '0' then
 							sum_faction <= std_logic_vector(unsigned(faction_a) - unsigned(faction_b));
 							sum_sign <= sign_a;
 							state <= S3;
 						else
-							sum_faction <= std_logic_vector(unsigned(faction_b) - unsigned(faction_a));
-							sum_sign <= sign_b;
-							state <= S3;
+							if unsigned(faction_a) > unsigned(faction_b) then
+								sum_faction <= std_logic_vector(unsigned(faction_a) + unsigned(faction_b));
+								sum_sign <= sign_a;
+								state <= S3;
+							else
+								sum_faction <= std_logic_vector(unsigned(faction_b) + unsigned(faction_a));
+								sum_sign <= sign_b;
+								state <= S3;
+							end if;
 						end if;
-					end if;
-						
+					end if ;
+					
 				when S3 =>
 					if sum_faction(24) = '1' then
 						sum_faction <= std_logic_vector(shift_right(unsigned(sum_faction), 1));
@@ -111,7 +130,6 @@ begin
 						state <= S4;
 					else
 						if sum_faction(23) = '1' then
-							sum_faction_norm <= sum_faction(22 downto 0);
 							state <= S4;
 						else 
 							sum_faction <= std_logic_vector(shift_left(unsigned(sum_faction), 1));
@@ -121,7 +139,9 @@ begin
 					end if;
 					
 				when S4 =>
-					result <= sum_sign & sum_expo(7 downto 0) & sum_faction_norm;
+					s_expo <= sum_expo ;
+					sum_frac <= sum_faction ;
+					result <= sum_sign & sum_expo(7 downto 0) & sum_faction(22 downto 0);
 					state <= S0;
 					done <= '1';
 					
